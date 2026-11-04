@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-BR" data-tema="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SmartAgenda</title>
+<script>
+/* aplica o tema salvo (ou o do sistema) antes da página aparecer, sem piscar */
+try{
+  var s = JSON.parse(localStorage.getItem('smartagenda:v1'));
+  document.documentElement.dataset.tema = (s && s.tema) || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+}catch(e){}
+</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- ============ TELA DE ACESSO ============ -->
+<div id="acesso">
+  <header class="top">
+    <a class="logo" href="#"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="mh" d="M12 12V7"/><path class="hh" d="M12 12l3 2"/></svg>SmartAgenda</a>
+    <div class="acoes"><button id="tema2" class="gh" type="button"></button></div>
+  </header>
+
+  <main class="lg">
+    <section class="lg-hero">
+      <h1>Seu tempo livre, bem usado.</h1>
+      <p>Entre para ver as brechas livres do seu dia, ou crie sua conta em menos de um minuto.</p>
+
+      <div class="mini" aria-hidden="true">
+        <div class="mtopo"><b>Hoje</b><span>3 compromissos, 2 brechas</span></div>
+        <div class="mev"><span>Aula online</span><small>09:00 às 11:00</small></div>
+        <div class="mlv"><b>Livre</b> 11:00 às 12:00, 1h</div>
+        <div class="mev"><span>Almoço</span><small>12:00 às 13:00</small></div>
+        <div class="mlv grande"><b>Livre</b> 13:00 às 15:30, 2h30</div>
+        <div class="mev"><span>Reunião do grupo</span><small>15:30 às 16:30</small></div>
+      </div>
+    </section>
+
+    <section class="pn lg-card" aria-label="Acesso à plataforma">
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" id="abaLogin" aria-selected="true" aria-controls="painelLogin" onclick="aba('login')">Entrar</button>
+        <button type="button" role="tab" id="abaCad" aria-selected="false" aria-controls="painelCad" tabindex="-1" onclick="aba('cadastro')">Criar conta</button>
+      </div>
+
+      <!-- ===== LOGIN ===== -->
+      <form id="painelLogin" role="tabpanel" aria-labelledby="abaLogin" onsubmit="event.preventDefault(); entrar()" novalidate>
+        <h2>Bem-vindo de volta</h2>
+        <div class="fd">
+          <label for="loginUsuario">Usuário</label>
+          <input id="loginUsuario" type="text" autocomplete="username" placeholder="seu usuário">
+        </div>
+        <div class="fd">
+          <label for="loginSenha">Senha</label>
+          <div class="pw">
+            <input id="loginSenha" type="password" autocomplete="current-password" placeholder="sua senha">
+            <button type="button" class="olho" onclick="togglePw('loginSenha', this)" aria-label="Mostrar ou ocultar a senha">Mostrar</button>
+          </div>
+          <p id="caps" class="aviso" hidden>⚠ Caps Lock está ligado</p>
+        </div>
+        <label class="ck"><input id="manter" type="checkbox"> Manter conectado neste navegador</label>
+        <p id="mensagem" class="msg" role="alert"></p>
+        <button class="bt full" type="submit">Entrar</button>
+        <p class="troca">Ainda não tem conta? <button type="button" class="lnk" onclick="aba('cadastro')">Criar conta</button></p>
+      </form>
+
+      <!-- ===== CADASTRO ===== -->
+      <form id="painelCad" role="tabpanel" aria-labelledby="abaCad" onsubmit="event.preventDefault(); cadastrar()" novalidate hidden>
+        <h2>Crie sua conta</h2>
+        <div class="fd">
+          <label for="cadNome">Nome</label>
+          <input id="cadNome" type="text" autocomplete="name" placeholder="seu nome">
+        </div>
+        <div class="fd">
+          <label for="cadEmail">E-mail</label>
+          <input id="cadEmail" type="email" autocomplete="email" placeholder="voce@exemplo.com">
+        </div>
+        <div class="fd">
+          <label for="cadUsuario">Usuário</label>
+          <input id="cadUsuario" type="text" autocomplete="username" placeholder="escolha um usuário">
+        </div>
+        <div class="fd">
+          <label for="cadSenha">Senha</label>
+          <div class="pw">
+            <input id="cadSenha" type="password" autocomplete="new-password" placeholder="crie uma senha" oninput="forca()">
+            <button type="button" class="olho" onclick="togglePw('cadSenha', this)" aria-label="Mostrar ou ocultar a senha">Mostrar</button>
+          </div>
+          <div class="forca" id="forca" data-n="0" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <small id="forcaTxt" class="ftxt"></small>
+        </div>
+        <p id="mensagemCad" class="msg" role="alert"></p>
+        <button class="bt full" type="submit">Cadastrar</button>
+        <p class="troca">Já tem conta? <button type="button" class="lnk" onclick="aba('login')">Entrar</button></p>
+      </form>
+    </section>
+  </main>
+</div>
+
+<!-- ============ BOAS-VINDAS (transição depois do login) ============ -->
+<div id="boasvindas" role="status" hidden>
+  <div>
+    <div class="rel"><svg viewBox="0 0 24 24" width="96" height="96" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="mh" d="M12 12V7"/><path class="hh" d="M12 12l3 2"/></svg></div>
+    <h1 id="bvNome">Olá!</h1>
+    <p>Preparando a sua agenda…</p>
+    <div class="bar"><i></i></div>
+  </div>
+</div>
+
+<!-- ============ PLATAFORMA (só aparece após o login) ============ -->
+<div id="plataforma">
+<header class="top">
+  <a class="logo" href="#"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="mh" d="M12 12V7"/><path class="hh" d="M12 12l3 2"/></svg>SmartAgenda</a>
+  <div class="acoes"><span id="ola"></span><button id="tema" class="gh" type="button"></button><button id="logout" class="gh" type="button" onclick="logout()">Sair</button></div>
+</header>
+
+<section class="hero">
+  <div>
+    <h1>Seu tempo livre, bem usado.</h1>
+    <p>Cadastre seus compromissos. Veja as brechas livres do dia e use cada uma do jeito que quiser.</p>
+  </div>
+  <div class="prog" role="progressbar" id="pg" aria-label="Progresso de hoje" aria-valuemin="0" aria-valuemax="100">
+    <div class="pl"><span>Progresso de hoje</span><b id="pv">0%</b></div>
+    <div class="bar"><i id="pb" style="width:0"></i></div>
+    <small id="pt"></small>
+  </div>
+</section>
+
+<main class="g">
+  <section class="pn w" aria-labelledby="ha">
+    <h2 id="ha">Agenda do dia</h2>
+    <div class="wk"><button data-w="-7" aria-label="Semana anterior" type="button">‹</button><div id="semana"></div><button data-w="7" aria-label="Próxima semana" type="button">›</button></div>
+    <div id="dtitulo"></div>
+    <div id="tlw"><div id="tl"></div></div>
+    <form id="fev" class="r">
+      <input id="et" type="text" placeholder="Novo compromisso" aria-label="Nome do compromisso" required>
+      <input id="ei" type="time" value="09:00" min="07:00" max="22:00" aria-label="Início" required>
+      <input id="ef" type="time" value="10:00" min="07:00" max="22:00" aria-label="Fim" required>
+      <button class="bt" type="submit">Adicionar</button>
+    </form>
+    <p id="erro" role="alert"></p>
+  </section>
+
+  <section class="pn" aria-labelledby="hm">
+    <h2 id="hm">Metas diárias</h2>
+    <div id="metas"></div>
+  </section>
+
+  <section class="pn" aria-labelledby="ht">
+    <h2 id="ht">Tarefas</h2>
+    <ul class="l" id="tarefas"></ul>
+    <form id="ftar" class="r"><input id="tt" type="text" placeholder="Nova tarefa" aria-label="Nova tarefa" required><button class="bt" type="submit">Adicionar</button></form>
+  </section>
+
+  <section class="pn" aria-labelledby="hl">
+    <h2 id="hl">Lembretes</h2>
+    <ul class="l" id="lemb"></ul>
+    <form id="flem" class="r"><input id="lt" type="text" placeholder="Lembrar de…" aria-label="Texto do lembrete" required><input id="lh" type="time" aria-label="Horário" required><button class="bt" type="submit">Criar</button></form>
+  </section>
+</main>
+<div id="toast" role="status"></div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
